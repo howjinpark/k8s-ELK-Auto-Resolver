@@ -52,7 +52,7 @@ Background Color: #FF6B6B
 
 ```bash
 # 웹훅 URL 형식 확인
-https://hooks.slack.com/services/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
+https://hooks.slack.com/services/YOUR_TEAM_ID/YOUR_BOT_ID/YOUR_TOKEN
                                  ↑ Team ID   ↑ Bot ID    ↑ Token
 ```
 
@@ -73,7 +73,7 @@ python3 load_env.py
 
 # 출력 예시에서 Slack 설정 확인
 slack:
-  webhook_url: https://hooks.slack.com/services/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
+  webhook_url: https://hooks.slack.com/services/YOUR_TEAM_ID/YOUR_BOT_ID/YOUR_TOKEN
   channel: error-detection
   enabled: true
 ```
