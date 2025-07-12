@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: DaemonSet
+metadata:
+  name: multipath-cleanup
+  namespace: default
+spec:
+  selector:
+    matchLabels:
+      name: multipath-cleanup
+  template:
+    metadata:
+      labels:
+        name: multipath-cleanup
+    spec:
+      hostNetwork: true
+      hostPID: true
+      containers:
+      - name: cleanup
+        image: ubuntu:20.04
+        command: ["/bin/bash"]
+        args:
+          - -c
+          - |
+            echo "Starting multipath cleanup on $(hostname)"
+            
+            # chroot를 사용하여 호스트 시스템에서 명령 실행
+            chroot /host /bin/bash -c "
+              echo 'Stopping multipathd service...'
+              systemctl stop multipathd || true
+              systemctl disable multipathd || true
+              
+              echo 'Removing multipath-tools package...'
+              DEBIAN_FRONTEND=noninteractive apt remove --purge multipath-tools -y || true
+              apt autoremove -y || true
+              
+              echo 'Multipath cleanup completed on $(hostname)'
+            "
+            
+            echo "Cleanup job completed. Sleeping..."
+            sleep 300
+        securityContext:
+          privileged: true
+        volumeMounts:
+        - name: host-root
+          mountPath: /host
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "100m"
+          limits:
+            memory: "128Mi"
+            cpu: "200m"
+      volumes:
+      - name: host-root
+        hostPath:
+          path: /
+      tolerations:
+      - operator: Exists
+      nodeSelector:
+        kubernetes.io/os: linux

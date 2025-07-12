@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: test-runtime-error-service
+  namespace: default
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: test-runtime-error-service
+  template:
+    metadata:
+      labels:
+        app: test-runtime-error-service
+    spec:
+      containers:
+      - name: error-generator
+        image: busybox:latest
+        command: ["/bin/sh"]
+        args:
+          - -c
+          - |
+            echo "Service started successfully"
+            sleep 10
+            echo "ERROR: Database connection failed - Connection refused"
+            echo "ERROR: Unable to connect to redis://localhost:6379"
+            echo "WARN: High memory usage detected: 95%"
+            sleep 10
+            echo "ERROR: Authentication failed for user 'admin'"
+            echo "CRITICAL: Disk space critically low: 2% remaining"
+            sleep 10
+            echo "ERROR: API endpoint timeout: /api/users"
+            echo "ERROR: SSL certificate expired"
+            echo "FATAL: Service crashed with exit code 1"
+            exit 1
+        resources:
+          requests:
+            memory: "64Mi"
+            cpu: "250m"
+          limits:
+            memory: "128Mi"
+            cpu: "500m"
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: test-runtime-error-service
+  namespace: default
+spec:
+  selector:
+    app: test-runtime-error-service
+  ports:
+  - port: 8080
+    targetPort: 8080
+  type: ClusterIP

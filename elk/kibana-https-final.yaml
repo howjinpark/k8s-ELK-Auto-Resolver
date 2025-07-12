@@ -1,0 +1,114 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: kibana
+  namespace: elk-stack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: kibana
+  template:
+    metadata:
+      labels:
+        app: kibana
+    spec:
+      containers:
+      - name: kibana
+        image: docker.elastic.co/kibana/kibana:7.17.9
+        ports:
+        - containerPort: 5601
+          name: https
+        env:
+        # Elasticsearch 연결 설정
+        - name: ELASTICSEARCH_HOSTS
+          value: "https://elasticsearch:9200"
+        - name: ELASTICSEARCH_USERNAME
+          value: "elastic"
+        - name: ELASTICSEARCH_PASSWORD
+          value: "elastic123"
+        - name: ELASTICSEARCH_SSL_CERTIFICATEAUTHORITIES
+          value: "/usr/share/kibana/config/certs/ca.pem"
+        - name: ELASTICSEARCH_SSL_VERIFICATIONMODE
+          value: "certificate"
+        # Kibana 자체 HTTPS 설정
+        - name: SERVER_SSL_ENABLED
+          value: "true"
+        - name: SERVER_SSL_KEY
+          value: "/usr/share/kibana/config/certs/kibana-key.pem"
+        - name: SERVER_SSL_CERTIFICATE
+          value: "/usr/share/kibana/config/certs/kibana.pem"
+        - name: SERVER_HOST
+          value: "0.0.0.0"
+        - name: SERVER_PORT
+          value: "5601"
+        - name: SERVER_NAME
+          value: "kibana"
+        - name: LOGGING_LEVEL
+          value: "info"
+        # X-Pack 설정
+        - name: XPACK_SECURITY_ENABLED
+          value: "true"
+        - name: XPACK_ENCRYPTEDSAVEDOBJECTS_ENCRYPTIONKEY
+          value: "something_at_least_32_characters_long"
+        volumeMounts:
+        - name: ssl-certs
+          mountPath: /usr/share/kibana/config/certs
+          readOnly: true
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        readinessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+            scheme: HTTPS
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+        livenessProbe:
+          httpGet:
+            path: /api/status
+            port: 5601
+            scheme: HTTPS
+          initialDelaySeconds: 120
+          periodSeconds: 30
+          timeoutSeconds: 10
+      volumes:
+      - name: ssl-certs
+        secret:
+          secretName: elk-ssl-certs
+          defaultMode: 0644
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana
+  namespace: elk-stack
+spec:
+  selector:
+    app: kibana
+  ports:
+  - name: https
+    port: 5601
+    targetPort: 5601
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: kibana-external
+  namespace: elk-stack
+spec:
+  selector:
+    app: kibana
+  ports:
+  - name: https
+    port: 5601
+    targetPort: 5601
+    nodePort: 30051
+  type: NodePort

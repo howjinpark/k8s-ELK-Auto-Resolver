@@ -1,0 +1,73 @@
+# ELK Auto Resolver Configuration
+elasticsearch:
+  host: "localhost"
+  port: 9200
+  index_pattern: "logstash-*"
+  # HTTPS/TLS 설정
+  use_ssl: true
+  verify_certs: false  # self-signed 인증서 사용 시
+  ssl_show_warn: false
+  username: "elastic"
+  password: "${ELASTICSEARCH_PASSWORD}"
+  # Kubernetes 내부 접근 (선택사항)
+  k8s_service_host: "elasticsearch.elk-stack.svc.cluster.local"
+  k8s_service_port: 9200
+  
+slack:
+  webhook_url: "${SLACK_WEBHOOK_URL}"
+  channel: "error-detection"
+  enabled: true  # true=알림 활성화, false=알림 비활성화
+  
+perplexity:
+  api_key: "${PERPLEXITY_API_KEY}"
+  model: "sonar"
+  base_url: "https://api.perplexity.ai"
+  
+database:
+  host: "localhost"
+  port: 5432
+  name: "elk_resolver"
+  user: "postgres"
+  password: "${DATABASE_PASSWORD}"
+  
+kubernetes:
+  namespace: "elk-stack"
+  config_path: "~/.kube/config"
+  
+monitoring:
+  check_interval: 60  # seconds
+  error_threshold: 25  # number of errors to trigger alert
+  
+resolver:
+  max_retries: 3
+  timeout: 300  # seconds
+  safe_mode: true  # only run pre-approved commands
+
+# 로그 관리 및 정리 설정
+log_management:
+  # 자동 정리 간격 (시간)
+  cleanup_interval_hours: 24
+  
+  # 로그 보존 기간 (일)
+  retention_days: 7
+  
+  # 최대 검색 시간 (시간) - 너무 오래된 로그는 검색하지 않음
+  max_search_hours: 24
+  
+  # Elasticsearch 인덱스 정리 설정
+  elasticsearch_cleanup:
+    enabled: true
+    # 삭제할 인덱스 패턴 (logstash-YYYY.MM.DD 형식)
+    index_pattern: "logstash-*"
+    # 보존할 최근 인덱스 개수
+    keep_recent_indices: 7
+  
+  # 데이터베이스 정리 설정  
+  database_cleanup:
+    enabled: true
+    # 에러 로그 보존 기간 (일)
+    error_logs_retention_days: 7
+    # 해결책 보존 기간 (일) - 참조되지 않는 것만 삭제
+    solutions_retention_days: 30
+    # 실행 이력 보존 기간 (일)
+    execution_history_retention_days: 14

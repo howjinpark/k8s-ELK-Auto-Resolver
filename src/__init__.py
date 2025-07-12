@@ -1,0 +1,1 @@
+# ELK Auto Resolver Package

@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: elasticsearch
+  namespace: elk-stack
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: elasticsearch
+  template:
+    metadata:
+      labels:
+        app: elasticsearch
+    spec:
+      initContainers:
+      - name: setup-certs
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
+        command:
+        - /bin/bash
+        - -c
+        - |
+          set -e
+          echo "Setting up certificates..."
+          cp -R /usr/share/elasticsearch/config/certs-input/* /usr/share/elasticsearch/config/certs/
+          chmod 755 /usr/share/elasticsearch/config/certs
+          chmod 644 /usr/share/elasticsearch/config/certs/*.pem
+          chmod 600 /usr/share/elasticsearch/config/certs/*-key.pem
+          
+          # Create elasticsearch.yml with proper SSL settings
+          cat > /usr/share/elasticsearch/config/elasticsearch.yml << EOF
+          cluster.name: elk-cluster
+          node.name: elasticsearch-node
+          network.host: 0.0.0.0
+          http.port: 9200
+          transport.port: 9300
+          discovery.type: single-node
+          
+          # X-Pack Security Settings
+          xpack.security.enabled: true
+          xpack.security.http.ssl.enabled: true
+          xpack.security.http.ssl.key: certs/elasticsearch-key.pem
+          xpack.security.http.ssl.certificate: certs/elasticsearch.pem
+          xpack.security.http.ssl.certificate_authorities: [ "certs/ca.pem" ]
+          xpack.security.http.ssl.verification_mode: certificate
+          
+          xpack.security.transport.ssl.enabled: false
+          
+          # Allow anonymous access for initial setup
+          xpack.security.authc.anonymous.username: anonymous
+          xpack.security.authc.anonymous.roles: superuser
+          xpack.security.authc.anonymous.authz_exception: false
+          EOF
+          
+          echo "Certificates and config setup complete"
+          ls -la /usr/share/elasticsearch/config/certs/
+          cat /usr/share/elasticsearch/config/elasticsearch.yml
+        volumeMounts:
+        - name: ssl-certs-input
+          mountPath: /usr/share/elasticsearch/config/certs-input
+        - name: elasticsearch-config
+          mountPath: /usr/share/elasticsearch/config/certs
+        - name: elasticsearch-yml
+          mountPath: /usr/share/elasticsearch/config
+      containers:
+      - name: elasticsearch
+        image: docker.elastic.co/elasticsearch/elasticsearch:7.17.9
+        ports:
+        - containerPort: 9200
+          name: https
+        - containerPort: 9300
+          name: transport
+        env:
+        - name: ES_JAVA_OPTS
+          value: "-Xms1g -Xmx2g"
+        - name: ELASTIC_PASSWORD
+          value: "elastic123"
+        volumeMounts:
+        - name: elasticsearch-config
+          mountPath: /usr/share/elasticsearch/config/certs
+        - name: elasticsearch-yml
+          mountPath: /usr/share/elasticsearch/config
+        resources:
+          requests:
+            memory: "1Gi"
+            cpu: "500m"
+          limits:
+            memory: "2Gi"
+            cpu: "1000m"
+        readinessProbe:
+          exec:
+            command:
+            - /bin/bash
+            - -c
+            - |
+              curl -s -k -u elastic:elastic123 https://localhost:9200/_cluster/health | grep -q '"status":"green"'
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      volumes:
+      - name: ssl-certs-input
+        secret:
+          secretName: elk-ssl-certs
+      - name: elasticsearch-config
+        emptyDir: {}
+      - name: elasticsearch-yml
+        emptyDir: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch
+  namespace: elk-stack
+spec:
+  selector:
+    app: elasticsearch
+  ports:
+  - name: https
+    port: 9200
+    targetPort: 9200
+  - name: transport
+    port: 9300
+    targetPort: 9300
+  type: ClusterIP
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: elasticsearch-external
+  namespace: elk-stack
+spec:
+  selector:
+    app: elasticsearch
+  ports:
+  - name: https
+    port: 9200
+    targetPort: 9200
+    nodePort: 30920
+  type: NodePort

@@ -1,0 +1,47 @@
+# 환경 변수 파일 (보안상 중요)
+.env
+.env.local
+.env.*.local
+
+# 로그 파일
+*.log
+elk_auto_resolver.log
+
+# Python 캐시
+__pycache__/
+*.py[cod]
+*$py.class
+
+# 데이터베이스 파일
+*.db
+*.sqlite3
+
+# IDE 설정
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS 파일
+.DS_Store
+Thumbs.db
+
+# 임시 파일
+*.tmp
+*.temp
+.tmp/
+
+# SSL 인증서 및 Private Key (보안상 중요)
+*.pem
+*.key
+*.crt
+*.csr
+ssl-certs/
+*.p12
+*.pfx
+
+# API 키 및 설정 파일 (보안상 중요)
+config/.env
+**/config/.env
+api_keys.txt
+secrets.yaml
