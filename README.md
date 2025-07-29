@@ -7,11 +7,11 @@ AI 기반 자동 에러 탐지 및 해결 시스템
 ELK Auto Resolver는 ELK Stack (Elasticsearch, Logstash, Kibana)과 연동하여 실시간으로 시스템 에러를 감지하고, AI를 활용해 자동으로 문제를 해결하는 지능형 시스템입니다.
 
 ## 시스템 아키텍처
-```
+
 <div align="center">
   <img src="elk-auto-resolver-architecture.png" alt="ELK Auto Resolver 전체 아키텍처" width="80%">
 </div>
-```
+
 
 ## 데이터 플로우
 
