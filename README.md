@@ -20,7 +20,7 @@ ELK Auto Resolver는 ELK Stack (Elasticsearch, Logstash, Kibana)과 연동하여
 │ ┌──────────────┐ │───▶│ │Filebeat  │▶│Logstash  │▶│Elasticsearch │   │
 │ │   Pod Logs   │ │    │ │(수집)    │ │(가공)    │ │(저장/검색)   │   │
 │ │   Events     │ │    │ └──────────┘ └──────────┘ └──────────────┘   │
-│ │   Metrics    │ │    │                              ▲               │
+│ │              │ │    │                              ▲               │
 │ └──────────────┘ │    │ ┌──────────────┐             │               │
 └──────────────────┘    │ │    Kibana    │─────────────┘               │
                         │ │(시각화/대시보드)│                             │
