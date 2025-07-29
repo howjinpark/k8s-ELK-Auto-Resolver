@@ -63,7 +63,7 @@ ELK Auto Resolver는 ELK Stack (Elasticsearch, Logstash, Kibana)과 연동하여
 ## 데이터 플로우
 
 ```
-📊 로그 수집 → 🔍 에러 감지 → 🤖 AI 분석 → ⚡ 자동 해결 → 📱 알림
+📊 로그 수집 → 🔍 에러 감지 → 🧠 해결책 결정 → ⚡ 자동 해결 → 📱 알림
 ```
 
 **1. 로그 수집 단계**
@@ -78,7 +78,10 @@ Error Monitor → Elasticsearch Query → 에러 패턴 매칭 → 임계값 확
 
 **3. AI 분석 단계**
 ```
-감지된 에러 → Perplexity AI API → 해결책 생성 → PostgreSQL 저장
+감지된 에러 → PostgreSQL 조회 → 기존 해결책 확인 (success_rate > 50%)
+     ↓                                        ↓
+     └─── 없음 ────→ 🤖 Perplexity AI API → 해결책 생성 → PostgreSQL 저장
+     └─── 있음 ────→ 📚 기존 해결책 재사용 (API 비용 0원!)
 ```
 
 **4. 자동 해결 단계**
@@ -89,6 +92,11 @@ AI 해결책 → kubectl 명령 생성 → Kubernetes 실행 → 결과 확인
 **5. 알림 단계**
 ```
 처리 결과 → Slack Webhook → 실시간 알림 → 사용자 확인
+```
+
+**6. 학습 단계 ⭐ 지속적 개선**
+```
+실행 결과 → PostgreSQL 업데이트 → 성공률 계산 → 다음 에러 시 활용
 ```
 
 ## 주요 기능
