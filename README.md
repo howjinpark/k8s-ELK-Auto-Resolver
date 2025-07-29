@@ -8,7 +8,7 @@ ELK Auto Resolver는 ELK Stack (Elasticsearch, Logstash, Kibana)과 연동하여
 
 ## 시스템 아키텍처
 ```
-elk-auto-resolver-architecture.png
+<img src="elk-auto-resolver-architecture.png" alt="ELK Auto Resolver 전체 아키텍처" width="80%">
 ```
 
 ## 데이터 플로우
