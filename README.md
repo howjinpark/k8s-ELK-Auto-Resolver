@@ -8,12 +8,8 @@ ELK Auto Resolver는 ELK Stack (Elasticsearch, Logstash, Kibana)과 연동하여
 
 ## 시스템 아키텍처
 
-```
-<img width="1761" height="1161" alt="image" src="https://github.com/user-attachments/assets/6ed8755c-a399-48fa-ac19-7ab57ad121aa" />
+<img width="1761" height="1161" alt="image" src="https://github.com/user-attachments/assets/1984711c-8af3-4c48-879d-3a1af1189535" />
 
-
-
-```
 
 ## 데이터 플로우
 
